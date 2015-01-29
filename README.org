@@ -1,6 +1,9 @@
 * CVE_2015_0235
 gethostbyname*() buffer overflow exploit in glibc - CVE-2015-0235 https://community.qualys.com/blogs/laws-of-vulnerabilities/2015/01/27/the-ghost-vulnerability
 
+Originally Sourced from Ben Bomgardners post to the help-cfengine mailing list.
+https://groups.google.com/forum/#!topic/help-cfengine/tWjOlO19Mrw
+
 * Integration into masterfiles
 
 ** Download the policy and extract it into your masterfiles
