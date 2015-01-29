@@ -1,0 +1,24 @@
+bundle common CVE_2015_0235_def_file_control
+{
+  vars:
+
+    # Only load the file if the policy is specifically enabled
+    #enable_CVE_2015_0235_inventory::
+      "input[CVE_2015_0235_inventory]"
+        string => "$(this.promise_dirname)/policy/CVE_2015_0235_inventory.cf";
+
+    # Dynamically get a list of the policy files and bundle names;
+    any::
+      "inputs" slist => getvalues(input);
+      "bundles" slist => getindices(input);
+
+    reports:
+      DEBUG|DEBUG_CVE_2015_0235|CVE_2015_0235_def_file_control::
+      "Activated: '$(this.bundle)' in '$(this.promise_filename)'";
+}
+
+# Load the discovered list of inputs
+body file control
+{
+  inputs => { @(CVE_2015_0235_def_file_control.inputs) };
+}

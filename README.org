@@ -1,29 +1,73 @@
 * CVE_2015_0235
 gethostbyname*() buffer overflow exploit in glibc - CVE-2015-0235 https://community.qualys.com/blogs/laws-of-vulnerabilities/2015/01/27/the-ghost-vulnerability
 
-* Integrate it into your master files
+* Integration into masterfiles
+
+** Download the policy and extract it into your masterfiles
 
 #+begin_src sh
-wget blah
-tar -c $(masterfiles)/services/
+    MASTERFILES=/home/nickanderson/CFEngine/masterfiles
+    wget https://github.com/nickanderson/CVE_2015_0235/archive/master.tar.gz -O /tmp/CVE_2015_0235.tar.gz
+    tar --directory "$MASTERFILES/services" -zxvf /tmp/CVE_2015_0235.tar.gz
+#+end_src
+
+** The test exploit needs to be compiled.
+
+#+begin_src sh
+  cd $MASTERFILES/services/CVE_2015_2035/bins
+  gcc GHOST.c -o GHOST_CVE-2015-0235
+#+end_src
+
+** Include the path to def.cf into inputs
+
+#+begin_src cfengine
+  body common control
+  {
+        inputs => { 
+                    # Reports
+                    @(cfengine_reports.inputs),
+  
+                    # If you want to activate this policy from autorun,
+                    # then it needs to be included before autorun
+                    # inptus.
+                    "services/CVE_2015_0235/def.cf",
+                    
+                    # autorun system
+                    @(services_autorun.inputs),
+        };
+  }
 #+end_src
 
 * Activate it in your policy (with autorun)
 
-Simply create /masterfiles/services/autorun/CVE_2014_0235.cf with the following content.
-bundle agent CVE_2014_0235
-{
-  meta:
-        # Make sure we get activated
-        "tags" slist => { "autorun" };
-  
-  class:
-        # Enable the features we want
-        "enable_CVE_2014_0235_inventory" expression => "any";
+Create /masterfiles/services/autorun/CVE_2015_0235.cf with the following content.
 
-  methods:
-        # Converge the bundle for each feature.
+#+begin_src cfengine
+  bundle agent CVE_2015_0235
+  {
+    meta:
+          # Make sure we get activated
+          "tags" slist => { "autorun" };
+        
+    classes:
+      any::
+        # Enable the features we want
+        "enable_CVE_2015_0235_inventory" expression => "any";
+  
+    methods:
+          # Make sure that the control bundle has converged
         "CVE_2015_0235"
-          usebundle => $(CVE_2015_0235_def_file_control.bundles),
+          usebundle => CVE_2015_0235_def_file_control,
           comment => "Activate each enabled policy";
-}
+        
+      # Activate the features we want if they are enabled
+      enable_CVE_2015_0235_inventory::
+        "CVE_2015_0235"
+          usebundle => CVE_2015_0235_inventory,
+          comment => "We want to know where we are vulnerable";
+  
+    reports:
+      DEBUG|DEBUG_CVE_2015_0235::
+        "Activated: '$(this.bundle)' in '$(this.promise_filename)'";
+  }
+#+end_src

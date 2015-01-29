@@ -1,0 +1,54 @@
+bundle agent CVE_2015_0235_inventory
+{
+  meta:
+
+      "description"
+        string => "gethostbyname*() buffer overflow exploit in glibc - CVE-2015-0235
+                   https://community.qualys.com/blogs/laws-of-vulnerabilities/2015/01/27/the-ghost-vulnerability";
+
+
+  vars:
+
+    test_bin_present_ok::
+      "test_result" string => execresult("/tmp/GHOST_CVE-2015-0235", "noshell");
+
+    CVE_2015_0235::
+      "vulnerable" -> { "Mission Portal", "CFEngine Enterprise"}
+        string => "CVE-2015-0235",
+        meta => { "inventory", "attribute_name=Vulnerable CVE(s)" },
+        comment => "CFEngine Enterprise will use this specially tagged
+                    variable to augment the inventory reporting
+                    functionality in Mission Portal.";
+
+  classes:
+    "have_test_result"
+      scope => "bundle",
+      expression => isvariable(test_result);
+
+    "CVE_2015_0235"
+      scope => "namespace",
+      expression => regcmp( "vulnerable", "$(test_result)" ),
+      persistence => "10",
+      comment => "We persist the class for 2 agent runs so that bundles
+                  activated before this bundle can use the class on the next
+                  agent execution to coordinate things like package updates.";
+
+  files:
+      "/tmp/GHOST_CVE-2015-0235"
+        copy_from => remote_dcp("$(sys.masterdir)/services/CVE_2015_0235/bins/GHOST_CVE-2015-0235","$(sys.policy_hub)"),
+        perms     => mog("700","root","root"),
+        classes   => scoped_classes_generic("bundle", "test_bin_present"),
+        handle    => "CVE_2015_0235_inventory_compiled_test",
+        comment   => "This pre-compiled test was created from the Case
+                     Study section of this Qualys Security Advisory:
+                     https://www.qualys.com/research/security-advisories/GHOST-CVE-2015-0235.txt";
+
+  reports:
+    DEBUG|DEBUG_CVE_2015_0235|DEBUG_CVE_2015_0235_inventory::
+      "Activated: $(this.bundle)";
+      "Test Result for CVE_2015_0235: $(test_result)"
+        ifvarclass => "have_test_result";
+
+    CVE_2015_0235.(inform_mode|verbose_mode)::
+      "Tested Vulnerable for CVE-2015-0235: $($(this.bundle)_meta.description)";
+}
