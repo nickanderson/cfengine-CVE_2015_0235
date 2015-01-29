@@ -1,0 +1,29 @@
+* CVE_2015_0235
+gethostbyname*() buffer overflow exploit in glibc - CVE-2015-0235 https://community.qualys.com/blogs/laws-of-vulnerabilities/2015/01/27/the-ghost-vulnerability
+
+* Integrate it into your master files
+
+#+begin_src sh
+wget blah
+tar -c $(masterfiles)/services/
+#+end_src
+
+* Activate it in your policy (with autorun)
+
+Simply create /masterfiles/services/autorun/CVE_2014_0235.cf with the following content.
+bundle agent CVE_2014_0235
+{
+  meta:
+        # Make sure we get activated
+        "tags" slist => { "autorun" };
+  
+  class:
+        # Enable the features we want
+        "enable_CVE_2014_0235_inventory" expression => "any";
+
+  methods:
+        # Converge the bundle for each feature.
+        "CVE_2015_0235"
+          usebundle => $(CVE_2015_0235_def_file_control.bundles),
+          comment => "Activate each enabled policy";
+}
